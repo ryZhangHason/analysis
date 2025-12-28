@@ -15,11 +15,7 @@ async function fetchStockData(symbol, period) {
     const days = periodMap[period] || 180;
 
     try {
-        // Using Alpha Vantage API (free tier: 25 requests/day)
-        // Alternative: Use a CORS proxy for Yahoo Finance
-        const API_KEY = 'demo'; // Users should get their own free key from alphavantage.co
-
-        // For demo purposes, try Yahoo Finance with CORS proxy first
+        // Using Yahoo Finance with CORS proxy fallback
         const end = Math.floor(Date.now() / 1000);
         const start = end - (days * 24 * 60 * 60);
 
