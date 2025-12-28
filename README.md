@@ -1,6 +1,6 @@
 # Stock Price Predictor Web App
 
-🌐 **Live Demo**: https://ryzhanghason.github.io/ryzhanghason-stock.github.io/
+🌐 **Live Demo**: https://ryzhanghason.github.io/home/
 
 A beautiful web-based stock price prediction application that runs **100% in your browser** using Python (Pyodide).
 
