@@ -12,17 +12,34 @@ except ImportError:
     IN_BROWSER = False
 
 async def fetch_from_yahoo_async(url):
-    """Async fetch for browser environment using JavaScript fetch API"""
-    # Use JavaScript fetch directly
-    response = await fetch(url)
+    """Async fetch for browser environment using JavaScript fetch API with CORS proxy fallback"""
+    # List of CORS proxies to try
+    proxies = [
+        url,  # Try direct first
+        f"https://api.allorigins.win/raw?url={url}",
+        f"https://corsproxy.io/?{url}"
+    ]
 
-    if not response.ok:
-        raise Exception(f"HTTP {response.status}: {response.statusText}")
+    last_error = None
+    for proxy_url in proxies:
+        try:
+            # Use JavaScript fetch directly
+            response = await fetch(proxy_url)
 
-    # Get JSON response
-    text = await response.text()
-    data = json_module.loads(text)
-    return data
+            if not response.ok:
+                last_error = f"HTTP {response.status}: {response.statusText}"
+                continue
+
+            # Get JSON response
+            text = await response.text()
+            data = json_module.loads(text)
+            return data
+        except Exception as e:
+            last_error = str(e)
+            continue
+
+    # If all proxies failed, raise the last error
+    raise Exception(f"All CORS proxies failed. Last error: {last_error}")
 
 async def get_stock_data_async(ticker, period='1y', max_retries=3):
     """
