@@ -46,7 +46,12 @@
 
             <section id="loadingSection" class="loading-section" style="display: none;">
                 <div class="spinner"></div>
-                <p>Analyzing stock data...</p>
+                <p id="loadingMessage">Analyzing stock data...</p>
+                <div style="width: 80%; margin: 20px auto; background: #e0e0e0; border-radius: 10px; height: 30px; overflow: hidden;">
+                    <div id="progressBar" style="width: 0%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
             </section>
 
             <section id="resultSection" class="result-section" style="display: none;">
