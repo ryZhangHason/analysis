@@ -1,5 +1,7 @@
 # Stock Price Predictor Web App
 
+🌐 **Live Demo**: https://ryzhanghason-stock.github.io/
+
 A beautiful web-based stock price prediction application powered by XGBoost machine learning.
 
 ## 🌟 Features
