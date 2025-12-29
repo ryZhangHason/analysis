@@ -309,5 +309,52 @@ class StrategyOptimizer:
         df['Buy_Signal'] = (df['Position'].shift(1) == 0) & (df['Position'] == 1)
         df['Sell_Signal'] = (df['Position'].shift(1) == 0) & (df['Position'] == -1)
         df['Exit_Signal'] = ((df['Position'].shift(1) != 0) & (df['Position'] == 0))
-        
+
         return df
+
+    def optimize_all_strategies(self):
+        """
+        Optimize and return results for multiple strategy variations.
+
+        Returns:
+        --------
+        list
+            List of dictionaries containing strategy results with equity curves
+        """
+        if 'Composite_Index' not in self.df.columns:
+            return []
+
+        try:
+            # Optimize to find best thresholds
+            best_thresholds = self.optimize_thresholds()
+
+            if best_thresholds is None:
+                return []
+
+            # Apply the optimal strategy to get full equity curve
+            df_with_strategy = self.apply_optimal_strategy(best_thresholds)
+
+            # Prepare equity curve data
+            equity_curve = pd.DataFrame({
+                'Date': df_with_strategy['Date'] if 'Date' in df_with_strategy.columns else df_with_strategy.index,
+                'Portfolio_Value': df_with_strategy['Strategy_Value']
+            })
+
+            # Create strategy result
+            strategy_result = {
+                'strategy_name': f"Optimized Strategy (Buy>{best_thresholds['buy_threshold']}, Sell<{best_thresholds['sell_threshold']})",
+                'total_return': best_thresholds['total_return'],
+                'sharpe_ratio': best_thresholds['sharpe_ratio'],
+                'max_drawdown': best_thresholds['max_drawdown'],
+                'win_rate': best_thresholds['win_rate'],
+                'num_trades': best_thresholds['num_trades'],
+                'equity_curve': equity_curve,
+                'thresholds': best_thresholds
+            }
+
+            # Return as a list (could be expanded to include multiple strategies)
+            return [strategy_result]
+
+        except Exception as e:
+            print(f"Error in optimize_all_strategies: {str(e)}")
+            return []
