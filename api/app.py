@@ -10,6 +10,13 @@ from data_fetcher import get_stock_data
 from feature_engineering import add_technical_indicators, prepare_data_for_model
 from model import StockPredictor
 from strategy_optimizer import StrategyOptimizer
+from factor_analysis import (
+    get_fundamental_data, 
+    calculate_factor_score, 
+    add_factors_to_df,
+    get_factor_comparison,
+    format_fundamentals_for_display
+)
 import numpy as np
 
 app = Flask(__name__)
@@ -197,6 +204,136 @@ def predict():
         error_msg = f"Error: {str(e)}\n\n{traceback.format_exc()}"
         print(error_msg)
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/factors', methods=['POST'])
+def analyze_factors():
+    """
+    Analyze fundamental factors for a stock.
+    """
+    try:
+        data = request.get_json()
+        symbol = data.get('symbol', '').upper()
+
+        if not symbol:
+            return jsonify({'error': 'Stock symbol is required'}), 400
+
+        # Fetch fundamental data
+        print(f"Fetching fundamental data for {symbol}...")
+        fundamentals = get_fundamental_data(symbol)
+        
+        # Format for display
+        formatted = format_fundamentals_for_display(fundamentals)
+        
+        # Calculate factor scores
+        scores = calculate_factor_score(fundamentals)
+        
+        return jsonify({
+            'symbol': symbol,
+            'fundamentals': formatted,
+            'factor_scores': scores
+        })
+
+    except Exception as e:
+        import traceback
+        print(f"Error: {str(e)}\n{traceback.format_exc()}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/factors/compare', methods=['POST'])
+def compare_factors():
+    """
+    Compare factors across multiple stocks.
+    """
+    try:
+        data = request.get_json()
+        tickers = data.get('tickers', [])
+
+        if not tickers:
+            return jsonify({'error': 'At least one ticker is required'}), 400
+
+        # Get comparison data
+        print(f"Comparing factors for {tickers}...")
+        comparison_df = get_factor_comparison(tickers)
+        
+        # Convert to dict for JSON
+        comparison = comparison_df.to_dict('records')
+        
+        return jsonify({
+            'tickers': tickers,
+            'comparison': comparison
+        })
+
+    except Exception as e:
+        import traceback
+        print(f"Error: {str(e)}\n{traceback.format_exc()}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/factors/compare-full', methods=['POST'])
+def compare_factors_full():
+    """
+    Full factor analysis with technical indicators combined.
+    """
+    try:
+        data = request.get_json()
+        symbol = data.get('symbol', '').upper()
+        period = data.get('period', '2y')
+
+        if not symbol:
+            return jsonify({'error': 'Stock symbol is required'}), 400
+
+        # Fetch both price and fundamental data
+        print(f"Fetching data for {symbol}...")
+        df = get_stock_data(symbol, period)
+        
+        print(f"Fetching fundamental data for {symbol}...")
+        fundamentals = get_fundamental_data(symbol)
+        
+        # Add technical indicators
+        print(f"Adding technical indicators...")
+        df_features = add_technical_indicators(df)
+        
+        # Add fundamental factors
+        print(f"Adding fundamental factors...")
+        df_factors = add_factors_to_df(df_features, fundamentals)
+        
+        # Get factor scores
+        scores = calculate_factor_score(fundamentals)
+        
+        # Format fundamentals
+        formatted = format_fundamentals_for_display(fundamentals)
+        
+        return jsonify({
+            'symbol': symbol,
+            'fundamentals': formatted,
+            'factor_scores': scores,
+            'technical_indicators': {
+                'rsi': df_factors['RSI'].iloc[-1] if 'RSI' in df_factors.columns else None,
+                'macd': df_factors['MACD'].iloc[-1] if 'MACD' in df_factors.columns else None,
+                'macd_signal': df_factors['MACD_signal'].iloc[-1] if 'MACD_signal' in df_factors.columns else None,
+                'macd_hist': df_factors['MACD_hist'].iloc[-1] if 'MACD_hist' in df_factors.columns else None,
+                'bb_upper': df_factors['BB_upper'].iloc[-1] if 'BB_upper' in df_factors.columns else None,
+                'bb_lower': df_factors['BB_lower'].iloc[-1] if 'BB_lower' in df_factors.columns else None,
+                'adx': df_factors['ADX'].iloc[-1] if 'ADX' in df_factors.columns else None,
+                'price': df_factors['Close'].iloc[-1],
+                'ma20': df_factors['MA20'].iloc[-1] if 'MA20' in df_factors.columns else None,
+                'ma50': df_factors['MA50'].iloc[-1] if 'MA50' in df_factors.columns else None,
+            },
+            'combined_signals': {
+                'technical': 'bullish' if df_factors['RSI'].iloc[-1] < 30 else ('bearish' if df_factors['RSI'].iloc[-1] > 70 else 'neutral') if 'RSI' in df_factors.columns else 'unknown',
+                'value': 'undervalued' if scores['value_score'] > 60 else ('overvalued' if scores['value_score'] < 40 else 'fair'),
+                'growth': 'high' if scores['growth_score'] > 60 else ('low' if scores['growth_score'] < 40 else 'average'),
+                'profitability': 'strong' if scores['profitability_score'] > 60 else ('weak' if scores['profitability_score'] < 40 else 'average'),
+                'overall': 'buy' if scores['overall_score'] > 65 else ('sell' if scores['overall_score'] < 35 else 'hold')
+            }
+        })
+
+    except Exception as e:
+        import traceback
+        print(f"Error: {str(e)}\n{traceback.format_exc()}")
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/health', methods=['GET'])
 def health():

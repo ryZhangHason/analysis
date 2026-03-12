@@ -2,15 +2,22 @@
 
 🌐 **Live Demo**: https://ryzhanghason.github.io/analysis/
 
-A beautiful web-based stock price prediction application that runs **100% in your browser** using Python (Pyodide).
+A beautiful web-based stock prediction application with **Factor Analysis** and **Meta-Learning** capabilities.
 
 ## 🌟 Features
 
 - **🚀 No Server Needed**: Python runs entirely in your browser via WebAssembly
 - **🔒 Privacy-First**: All computations happen locally - no data sent to servers
 - **📊 Real-time Stock Data**: Fetches live data from Yahoo Finance
-- **📈 Technical Analysis**: Calculates MA, RSI, MACD, Volatility, and Momentum
+- **📈 Technical Analysis**: Calculates MA, RSI, MACD, Bollinger Bands, ADX, CCI, MFI, OBV
 - **🎯 Smart Predictions**: Multi-indicator scoring system for UP/DOWN predictions
+- **🔍 Factor Analysis**: 
+  - Value factors (PE, PB, PS, Dividend Yield)
+  - Profitability factors (ROE, ROA, Gross Margin, Operating Margin)
+  - Growth factors (Earnings Growth, Revenue Growth)
+  - Leverage factors (Debt/Equity, Current Ratio)
+  - Composite factor scores (0-100 scale)
+- **🧠 Meta-Learning Optimizer**: Smart strategy optimization with regime detection & ensemble methods
 - **📱 Responsive Design**: Works on desktop and mobile devices
 - **⚡ One-Time Load**: ~100MB download on first visit, then cached by browser
 
@@ -146,6 +153,54 @@ Users can configure:
 5. Trains/loads XGBoost model
 6. Makes prediction and optimizes trading strategy
 7. Returns results with charts to frontend
+
+## 🔬 Factor Analysis API
+
+### Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/factors` | POST | Get fundamental factors for a stock |
+| `/api/factors/compare` | POST | Compare factors across multiple stocks |
+| `/api/factors/compare-full` | POST | Full analysis combining technical + fundamental |
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:5000/api/factors \
+  -H "Content-Type: application/json" \
+  -d '{"symbol": "AAPL"}'
+```
+
+### Response (Factor Scores)
+
+```json
+{
+  "symbol": "AAPL",
+  "factor_scores": {
+    "value_score": 45.2,
+    "profitability_score": 92.5,
+    "growth_score": 65.0,
+    "leverage_score": 78.3,
+    "momentum_score": 55.0,
+    "overall_score": 67.2
+  },
+  "fundamentals": {
+    "trailingPE": 28.5,
+    "priceToBook": 45.0,
+    "returnOnEquity": "150.00%",
+    ...
+  }
+}
+```
+
+### Factor Categories
+
+- **Value Score**: PE, PB, PS ratios, dividend yield
+- **Profitability Score**: ROE, ROA, gross margin, operating margin
+- **Growth Score**: Earnings growth, revenue growth
+- **Leverage Score**: Debt/Equity, current ratio, quick ratio
+- **Momentum Score**: 52-week change, beta
 
 ## 🛠️ Development
 
