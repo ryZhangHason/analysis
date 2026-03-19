@@ -224,6 +224,78 @@ body {
     margin-top: 16px;
 }
 
+.debug-panel {
+    margin-top: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: rgba(3, 9, 17, 0.72);
+    overflow: hidden;
+}
+
+.debug-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+}
+
+.install-list {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    border-bottom: 1px solid var(--line);
+}
+
+.install-item {
+    display: grid;
+    gap: 6px;
+}
+
+.install-item-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.92rem;
+}
+
+.install-item-bar {
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(148, 163, 184, 0.14);
+}
+
+.install-item-bar span {
+    display: block;
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #1d7cd6, #39d0b6);
+    transition: width 0.25s ease;
+}
+
+.install-item.done .install-item-bar span {
+    width: 100%;
+    background: linear-gradient(90deg, #22c55e, #39d0b6);
+}
+
+.install-item.active .install-item-bar span {
+    width: 65%;
+}
+
+.debug-log {
+    min-height: 150px;
+    max-height: 240px;
+    overflow: auto;
+    padding: 14px;
+    color: #bfd1ea;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+
 .stage-item {
     display: flex;
     justify-content: space-between;

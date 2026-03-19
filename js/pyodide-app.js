@@ -24,9 +24,22 @@ const progressBar = document.getElementById("progressBar");
 const progressText = document.getElementById("progressText");
 const cacheStatus = document.getElementById("cacheStatus");
 const stageList = document.getElementById("stageList");
+const installList = document.getElementById("installList");
+const debugLog = document.getElementById("debugLog");
+const debugStatus = document.getElementById("debugStatus");
 const errorSection = document.getElementById("errorSection");
 const errorMessage = document.getElementById("errorMessage");
 const resultSection = document.getElementById("resultSection");
+
+const INSTALL_STEPS = [
+    "Load Pyodide runtime",
+    "Load numpy",
+    "Load pandas",
+    "Load scikit-learn",
+    "Load data_fetcher.py",
+    "Load feature_engineering.py",
+    "Load research_workstation.py",
+];
 
 function renderStages(activeIndex = -1, complete = false) {
     stageList.innerHTML = "";
@@ -47,6 +60,34 @@ function updateProgress(percent, message, activeStage = -1) {
     progressText.textContent = `${percent}%`;
     loadingMessage.textContent = message;
     renderStages(activeStage, percent >= 100);
+}
+
+function appendDebug(message) {
+    const stamp = new Date().toLocaleTimeString();
+    debugLog.textContent += `[${stamp}] ${message}\n`;
+    debugLog.scrollTop = debugLog.scrollHeight;
+}
+
+function renderInstallSteps(activeIndex = -1, doneIndex = -1) {
+    installList.innerHTML = "";
+    INSTALL_STEPS.forEach((label, index) => {
+        const item = document.createElement("div");
+        item.className = "install-item";
+        if (index <= doneIndex) item.classList.add("done");
+        else if (index === activeIndex) item.classList.add("active");
+        item.innerHTML = `
+            <div class="install-item-row">
+                <span>${label}</span>
+                <strong>${index <= doneIndex ? "done" : index === activeIndex ? "running" : "queued"}</strong>
+            </div>
+            <div class="install-item-bar"><span></span></div>
+        `;
+        installList.appendChild(item);
+    });
+}
+
+function markDebugStatus(text) {
+    debugStatus.textContent = text;
 }
 
 function showError(message) {
@@ -109,39 +150,71 @@ async function initPython() {
         predictBtn.disabled = true;
         predictBtn.textContent = "Loading Pyodide runtime...";
         loadingSection.classList.remove("hidden");
+        debugLog.textContent = "";
+        renderInstallSteps(-1, -1);
+        markDebugStatus("booting");
         updateProgress(5, "Loading Pyodide base runtime...", 0);
+        appendDebug("Booting Pyodide runtime");
+        renderInstallSteps(0, -1);
 
         pyodide = await loadPyodide({
             indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
         });
+        appendDebug("Pyodide runtime loaded");
+        renderInstallSteps(1, 0);
 
-        updateProgress(20, "Loading scientific Python packages...", 0);
-        await pyodide.loadPackage(["numpy", "pandas", "micropip", "scikit-learn"]);
+        updateProgress(18, "Loading numpy...", 0);
+        appendDebug("Loading package: numpy");
+        await pyodide.loadPackage("numpy");
+        appendDebug("Package ready: numpy");
+        renderInstallSteps(2, 1);
 
-        updateProgress(35, "Loading browser research modules...", 1);
+        updateProgress(24, "Loading pandas...", 0);
+        appendDebug("Loading package: pandas");
+        await pyodide.loadPackage("pandas");
+        appendDebug("Package ready: pandas");
+        renderInstallSteps(3, 2);
+
+        updateProgress(31, "Loading scikit-learn...", 0);
+        appendDebug("Loading package: scikit-learn");
+        await pyodide.loadPackage("scikit-learn");
+        appendDebug("Package ready: scikit-learn");
+        renderInstallSteps(4, 3);
+
+        updateProgress(40, "Loading browser research modules...", 1);
         const moduleFiles = [
             "python/data_fetcher.py",
             "python/feature_engineering.py",
-            "python/model.py",
-            "python/strategy_optimizer.py",
             "python/research_workstation.py",
         ];
 
-        for (const file of moduleFiles) {
+        for (let index = 0; index < moduleFiles.length; index += 1) {
+            const file = moduleFiles[index];
+            const installIndex = 4 + index;
+            renderInstallSteps(installIndex, installIndex - 1);
+            appendDebug(`Fetching module: ${file}`);
             const code = await fetch(file).then((response) => {
                 if (!response.ok) throw new Error(`Failed to load ${file}`);
                 return response.text();
             });
+            appendDebug(`Executing module: ${file}`);
             await pyodide.runPythonAsync(code);
+            appendDebug(`Module ready: ${file}`);
+            updateProgress(52 + ((index + 1) * 10), `Loaded ${file}`, 1);
         }
 
         isPythonReady = true;
         predictBtn.disabled = false;
         predictBtn.textContent = "Run Quant Research";
         updateProgress(100, "Pyodide research environment ready.", 5);
+        renderInstallSteps(-1, INSTALL_STEPS.length - 1);
+        markDebugStatus("ready");
+        appendDebug("Startup complete. Quant workstation ready.");
         setCacheStatus("Ready for first run");
     } catch (error) {
         predictBtn.textContent = "Runtime failed to load";
+        markDebugStatus("failed");
+        appendDebug(`Startup failed: ${error.stack || error.message}`);
         showError(`Failed to initialize Pyodide research environment: ${error.message}`);
     }
 }
@@ -520,11 +593,14 @@ async function handlePredict() {
     }
 
     try {
+        markDebugStatus("running research");
+        appendDebug(`Starting research run for ${symbol} / ${period}`);
         updateProgress(8, `Stage 1/6: validating ${symbol} market data...`, 0);
         updateProgress(20, "Stage 2/6: building browser feature store...", 1);
         updateProgress(38, "Stage 3/6: training the model stack...", 2);
 
         const data = await runResearch(symbol, period, optimizeStrategy);
+        appendDebug("Python research payload returned successfully");
 
         updateProgress(62, "Stage 4/6: running walk-forward validation...", 3);
         updateProgress(82, "Stage 5/6: simulating execution layer...", 4);
@@ -532,7 +608,11 @@ async function handlePredict() {
 
         saveRunToCache(symbol, period, data);
         displayResearch(data);
+        markDebugStatus("research ready");
+        appendDebug("Research run rendered to UI");
     } catch (error) {
+        markDebugStatus("research failed");
+        appendDebug(`Research failed: ${error.stack || error.message}`);
         showError(error.message || "Research pipeline failed.");
     } finally {
         predictBtn.disabled = false;
@@ -561,4 +641,5 @@ stockSymbolInput.addEventListener("keypress", (event) => {
 
 setupTabs();
 renderStages(-1, false);
+renderInstallSteps(-1, -1);
 initPython();
