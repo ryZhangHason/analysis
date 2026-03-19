@@ -3,101 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Price Predictor - Technical Analysis</title>
+    <title>Quant Research Workstation</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>📈 Stock Price Predictor</h1>
-            <p>Powered by XGBoost Machine Learning</p>
+    <div class="app-shell">
+        <header class="hero">
+            <div>
+                <p class="eyebrow">Browser-First Pyodide Quant Lab</p>
+                <h1>Quant Research Workstation</h1>
+                <p class="hero-copy">Single-symbol institutional-style research built on the current Yahoo-derived fetch workflow. No server required.</p>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-label">Pipeline</span>
+                    <strong>6 Stages</strong>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-label">Data Scope</span>
+                    <strong>OHLCV + events</strong>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-label">Execution</span>
+                    <strong>Pyodide In-Browser</strong>
+                </div>
+            </div>
         </header>
 
-        <main>
-            <section class="input-section">
-                <div class="input-group">
-                    <label for="stockSymbol">Stock Symbol:</label>
-                    <input type="text" id="stockSymbol" placeholder="e.g., AAPL, TSLA, 0020.HK" value="0020.HK">
+        <main class="workspace">
+            <section class="control-panel">
+                <div class="panel-head">
+                    <h2>Research Run</h2>
+                    <p>Fetch once, build a feature store, run the model stack, validate out-of-sample, and simulate execution.</p>
                 </div>
 
-                <div class="input-group">
-                    <label for="timePeriod">Time Period:</label>
-                    <select id="timePeriod">
-                        <option value="6mo">6 Months</option>
-                        <option value="1y">1 Year</option>
-                        <option value="2y" selected>2 Years</option>
-                        <option value="5y">5 Years</option>
-                        <option value="max">Maximum</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label>
-                        <input type="checkbox" id="optimizeStrategy" checked>
-                        Smart Strategy Optimization (Meta-Learning)
+                <div class="control-grid">
+                    <label class="field">
+                        <span>Symbol</span>
+                        <input type="text" id="stockSymbol" placeholder="e.g. AAPL, MSFT, NVDA" value="AAPL">
+                    </label>
+                    <label class="field">
+                        <span>Period</span>
+                        <select id="timePeriod">
+                            <option value="6mo">6 Months</option>
+                            <option value="1y">1 Year</option>
+                            <option value="2y" selected>2 Years</option>
+                            <option value="5y">5 Years</option>
+                            <option value="max">Maximum</option>
+                        </select>
+                    </label>
+                    <label class="field checkbox-field">
+                        <span>Execution Layer</span>
+                        <label class="checkbox-line">
+                            <input type="checkbox" id="optimizeStrategy" checked>
+                            <span>Enable adaptive strategy simulation</span>
+                        </label>
                     </label>
                 </div>
 
-                <button id="predictBtn" class="predict-btn">
-                    🔮 Fetch & Predict
-                </button>
-            </section>
+                <button id="predictBtn" class="primary-btn">Initialize Research Pipeline</button>
 
-            <section id="loadingSection" class="loading-section" style="display: none;">
-                <div class="spinner"></div>
-                <p id="loadingMessage">Analyzing stock data...</p>
-                <div style="width: 80%; margin: 20px auto; background: #e0e0e0; border-radius: 10px; height: 30px; overflow: hidden;">
-                    <div id="progressBar" style="width: 0%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                        <span id="progressText">0%</span>
+                <div id="loadingSection" class="loading-panel hidden">
+                    <div class="loading-topline">
+                        <div class="spinner"></div>
+                        <div>
+                            <p class="loading-title">Running staged research pipeline</p>
+                            <p id="loadingMessage" class="loading-copy">Preparing Pyodide environment...</p>
+                        </div>
                     </div>
-                </div>
-            </section>
-
-            <section id="resultSection" class="result-section" style="display: none;">
-                <div class="prediction-card">
-                    <h2>Prediction Result</h2>
-                    <div id="predictionResult" class="prediction-result"></div>
-                </div>
-
-                <div class="metrics-card">
-                    <h2>Model Performance</h2>
-                    <div id="metricsResult" class="metrics-content"></div>
+                    <div class="progress-rail">
+                        <div id="progressBar" class="progress-fill"></div>
+                    </div>
+                    <div class="progress-meta">
+                        <span id="progressText">0%</span>
+                        <span id="cacheStatus">No cached run</span>
+                    </div>
+                    <div id="stageList" class="stage-list"></div>
                 </div>
 
-                <div class="chart-card">
-                    <h2>Stock Price Chart</h2>
-                    <canvas id="priceChart"></canvas>
-                </div>
-
-                <div class="chart-card">
-                    <h2>Composite Index</h2>
-                    <canvas id="compositeChart"></canvas>
-                </div>
-
-                <div class="chart-card">
-                    <h2>Smart Strategy Performance</h2>
-                    <p style="font-size: 0.85em; color: #666; margin-top: -10px; margin-bottom: 15px;">Meta-Learning Optimizer with Regime Detection & Ensemble Methods</p>
-                    <canvas id="strategyChart"></canvas>
-                </div>
-            </section>
-
-            <section id="errorSection" class="error-section" style="display: none;">
-                <div class="error-message">
-                    <h2>⚠️ Error</h2>
+                <div id="errorSection" class="error-card hidden">
+                    <h3>Research Pipeline Error</h3>
                     <p id="errorMessage"></p>
                 </div>
             </section>
-        </main>
 
-        <footer>
-            <p>Built with Python, XGBoost, and ❤️ | <a href="https://github.com/ryZhangHason" target="_blank">GitHub</a></p>
-        </footer>
+            <section id="resultSection" class="results hidden">
+                <div class="overview-grid">
+                    <article class="summary-card summary-card-primary">
+                        <p class="card-label">Latest Recommendation</p>
+                        <h2 id="headlineRecommendation">Awaiting run</h2>
+                        <p id="headlineMeta" class="muted"></p>
+                    </article>
+                    <article class="summary-card">
+                        <p class="card-label">Composite Conviction</p>
+                        <h3 id="headlineConviction">-</h3>
+                        <p id="headlineState" class="muted"></p>
+                    </article>
+                    <article class="summary-card">
+                        <p class="card-label">Walk-Forward Accuracy</p>
+                        <h3 id="headlineValidation">-</h3>
+                        <p id="headlineQuality" class="muted"></p>
+                    </article>
+                    <article class="summary-card">
+                        <p class="card-label">Strategy Alpha</p>
+                        <h3 id="headlineAlpha">-</h3>
+                        <p id="headlineRisk" class="muted"></p>
+                    </article>
+                </div>
+
+                <div class="tab-strip" id="tabStrip">
+                    <button class="tab-btn active" data-tab="overview">Overview</button>
+                    <button class="tab-btn" data-tab="regime">Regime Lab</button>
+                    <button class="tab-btn" data-tab="alpha">Alpha Lab</button>
+                    <button class="tab-btn" data-tab="models">Model Lab</button>
+                    <button class="tab-btn" data-tab="strategy">Strategy Lab</button>
+                    <button class="tab-btn" data-tab="risk">Risk Lab</button>
+                    <button class="tab-btn" data-tab="explain">Explainability</button>
+                </div>
+
+                <div class="tab-panels">
+                    <section class="tab-panel active" data-panel="overview">
+                        <div class="panel-grid">
+                            <article class="panel-card">
+                                <h3>Overview Snapshot</h3>
+                                <div id="overviewSnapshot" class="kv-grid"></div>
+                            </article>
+                            <article class="panel-card">
+                                <h3>Research Notes</h3>
+                                <div id="overviewNotes" class="rich-text"></div>
+                            </article>
+                        </div>
+                        <div class="chart-grid">
+                            <article class="panel-card chart-card">
+                                <h3>Price and Structure</h3>
+                                <canvas id="priceChart"></canvas>
+                            </article>
+                            <article class="panel-card chart-card">
+                                <h3>Composite Conviction</h3>
+                                <canvas id="compositeChart"></canvas>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="tab-panel" data-panel="regime">
+                        <div class="panel-grid">
+                            <article class="panel-card">
+                                <h3>Regime Probabilities</h3>
+                                <div id="regimeProbabilities" class="kv-grid"></div>
+                            </article>
+                            <article class="panel-card">
+                                <h3>Regime Slice Validation</h3>
+                                <div id="regimeSlices" class="table-wrap"></div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="tab-panel" data-panel="alpha">
+                        <div class="panel-grid">
+                            <article class="panel-card">
+                                <h3>Alpha Sleeves</h3>
+                                <div id="alphaSleeves" class="table-wrap"></div>
+                            </article>
+                            <article class="panel-card">
+                                <h3>Conflict Map</h3>
+                                <div id="alphaConflict" class="rich-text"></div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="tab-panel" data-panel="models">
+                        <div class="panel-grid">
+                            <article class="panel-card">
+                                <h3>Base Model Votes</h3>
+                                <div id="modelVotes" class="table-wrap"></div>
+                            </article>
+                            <article class="panel-card">
+                                <h3>Feature Importance</h3>
+                                <div id="featureImportance" class="table-wrap"></div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="tab-panel" data-panel="strategy">
+                        <div class="panel-grid">
+                            <article class="panel-card">
+                                <h3>Execution Summary</h3>
+                                <div id="strategySummary" class="kv-grid"></div>
+                            </article>
+                            <article class="panel-card">
+                                <h3>Recent Trades</h3>
+                                <div id="tradeLog" class="table-wrap"></div>
+                            </article>
+                        </div>
+                        <article class="panel-card chart-card">
+                            <h3>Walk-Forward Strategy vs Buy & Hold</h3>
+                            <canvas id="strategyChart"></canvas>
+                        </article>
+                    </section>
+
+                    <section class="tab-panel" data-panel="risk">
+                        <div class="panel-grid">
+                            <article class="panel-card">
+                                <h3>Risk State</h3>
+                                <div id="riskSummary" class="kv-grid"></div>
+                            </article>
+                            <article class="panel-card">
+                                <h3>Calibration and Benchmarks</h3>
+                                <div id="calibrationTable" class="table-wrap"></div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="tab-panel" data-panel="explain">
+                        <div class="panel-grid">
+                            <article class="panel-card">
+                                <h3>Why This Signal Now</h3>
+                                <div id="explainWhy" class="rich-text"></div>
+                            </article>
+                            <article class="panel-card">
+                                <h3>Execution Logic</h3>
+                                <div id="explainExecution" class="rich-text"></div>
+                            </article>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <!-- Load Pyodide -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-    <!-- Load the Pyodide-based app -->
     <script src="js/pyodide-app.js"></script>
 </body>
 </html>
