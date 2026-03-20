@@ -11,22 +11,29 @@
     <div class="app-shell">
         <header class="hero">
             <div>
-                <p class="eyebrow">Browser-First Pyodide Quant Lab</p>
-                <h1>Quant Research Workstation</h1>
-                <p class="hero-copy">Single-symbol institutional-style research built on the current Yahoo-derived fetch workflow. No server required.</p>
+                <p class="eyebrow" data-i18n="hero_eyebrow">Browser-First Pyodide Quant Lab</p>
+                <h1 data-i18n="hero_title">Quant Research Workstation</h1>
+                <p class="hero-copy" data-i18n="hero_copy">Single-symbol institutional-style research built on the current Yahoo-derived fetch workflow. No server required.</p>
             </div>
             <div class="hero-stats">
+                <label class="language-switch">
+                    <span data-i18n="language_label">Language</span>
+                    <select id="languageSelect">
+                        <option value="en">English</option>
+                        <option value="zh">中文</option>
+                    </select>
+                </label>
                 <div class="hero-stat">
-                    <span class="hero-stat-label">Pipeline</span>
-                    <strong>6 Stages</strong>
+                    <span class="hero-stat-label" data-i18n="hero_stat_pipeline">Pipeline</span>
+                    <strong data-i18n="hero_stat_pipeline_value">6 Stages</strong>
                 </div>
                 <div class="hero-stat">
-                    <span class="hero-stat-label">Data Scope</span>
-                    <strong>OHLCV + events</strong>
+                    <span class="hero-stat-label" data-i18n="hero_stat_scope">Data Scope</span>
+                    <strong data-i18n="hero_stat_scope_value">OHLCV + events</strong>
                 </div>
                 <div class="hero-stat">
-                    <span class="hero-stat-label">Execution</span>
-                    <strong>Pyodide In-Browser</strong>
+                    <span class="hero-stat-label" data-i18n="hero_stat_execution">Execution</span>
+                    <strong data-i18n="hero_stat_execution_value">Pyodide In-Browser</strong>
                 </div>
             </div>
         </header>
@@ -34,42 +41,49 @@
         <main class="workspace">
             <section class="control-panel">
                 <div class="panel-head">
-                    <h2>Research Run</h2>
-                    <p>Fetch once, build a feature store, run the model stack, validate out-of-sample, and simulate execution.</p>
+                    <h2 data-i18n="research_run">Research Run</h2>
+                    <p data-i18n="research_run_copy">Fetch once, build a feature store, run the model stack, validate out-of-sample, and simulate execution.</p>
                 </div>
 
                 <div class="control-grid">
                     <label class="field">
-                        <span>Symbol</span>
-                        <input type="text" id="stockSymbol" placeholder="e.g. AAPL, MSFT, NVDA" value="AAPL">
+                        <span data-i18n="field_symbol">Symbol</span>
+                        <input type="text" id="stockSymbol" data-i18n-placeholder="field_symbol_placeholder" placeholder="e.g. AAPL, MSFT, NVDA" value="AAPL">
                     </label>
                     <label class="field">
-                        <span>Period</span>
+                        <span data-i18n="field_period">Period</span>
                         <select id="timePeriod">
-                            <option value="6mo">6 Months</option>
-                            <option value="1y">1 Year</option>
-                            <option value="2y" selected>2 Years</option>
-                            <option value="5y">5 Years</option>
-                            <option value="max">Maximum</option>
+                            <option value="6mo" data-i18n="period_6mo">6 Months</option>
+                            <option value="1y" data-i18n="period_1y">1 Year</option>
+                            <option value="2y" selected data-i18n="period_2y">2 Years</option>
+                            <option value="5y" data-i18n="period_5y">5 Years</option>
+                            <option value="max" data-i18n="period_max">Maximum</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span data-i18n="field_mode">Run Mode</span>
+                        <select id="executionMode">
+                            <option value="quick" data-i18n="mode_quick">Quick research</option>
+                            <option value="full" data-i18n="mode_full">Full ranking</option>
                         </select>
                     </label>
                     <label class="field checkbox-field">
-                        <span>Execution Layer</span>
+                        <span data-i18n="field_execution">Execution Layer</span>
                         <label class="checkbox-line">
                             <input type="checkbox" id="optimizeStrategy" checked>
-                            <span>Enable adaptive strategy simulation</span>
+                            <span data-i18n="field_execution_toggle">Enable adaptive strategy simulation</span>
                         </label>
                     </label>
                 </div>
 
-                <button id="predictBtn" class="primary-btn">Initialize Research Pipeline</button>
+                <button id="predictBtn" class="primary-btn" data-i18n="btn_initialize">Initialize Research Pipeline</button>
 
                 <div id="loadingSection" class="loading-panel hidden">
                     <div class="loading-topline">
                         <div class="spinner"></div>
                         <div>
-                            <p class="loading-title">Running staged research pipeline</p>
-                            <p id="loadingMessage" class="loading-copy">Preparing Pyodide environment...</p>
+                            <p class="loading-title" data-i18n="loading_title">Running staged research pipeline</p>
+                            <p id="loadingMessage" class="loading-copy" data-i18n="loading_prepare">Preparing Pyodide environment...</p>
                         </div>
                     </div>
                     <div class="progress-rail">
@@ -82,7 +96,7 @@
                     <div id="stageList" class="stage-list"></div>
                     <div class="debug-panel">
                         <div class="debug-head">
-                            <strong>Startup Debug</strong>
+                            <strong data-i18n="debug_title">Startup Debug</strong>
                             <span id="debugStatus">waiting</span>
                         </div>
                         <div id="installList" class="install-list"></div>
@@ -91,7 +105,7 @@
                 </div>
 
                 <div id="errorSection" class="error-card hidden">
-                    <h3>Research Pipeline Error</h3>
+                    <h3 data-i18n="error_title">Research Pipeline Error</h3>
                     <p id="errorMessage"></p>
                 </div>
             </section>
@@ -99,35 +113,35 @@
             <section id="resultSection" class="results hidden">
                 <div class="overview-grid">
                     <article class="summary-card summary-card-primary">
-                        <p class="card-label">Latest Recommendation</p>
+                        <p class="card-label" data-i18n="headline_recommendation">Latest Recommendation</p>
                         <h2 id="headlineRecommendation">Awaiting run</h2>
                         <p id="headlineMeta" class="muted"></p>
                     </article>
                     <article class="summary-card">
-                        <p class="card-label">Composite Conviction</p>
+                        <p class="card-label" data-i18n="headline_composite">Composite Conviction</p>
                         <h3 id="headlineConviction">-</h3>
                         <p id="headlineState" class="muted"></p>
                     </article>
                     <article class="summary-card">
-                        <p class="card-label">Walk-Forward Accuracy</p>
+                        <p class="card-label" data-i18n="headline_walkforward">Walk-Forward Accuracy</p>
                         <h3 id="headlineValidation">-</h3>
                         <p id="headlineQuality" class="muted"></p>
                     </article>
                     <article class="summary-card">
-                        <p class="card-label">Strategy Alpha</p>
+                        <p class="card-label" data-i18n="headline_alpha">Strategy Alpha</p>
                         <h3 id="headlineAlpha">-</h3>
                         <p id="headlineRisk" class="muted"></p>
                     </article>
                 </div>
 
                 <div class="tab-strip" id="tabStrip">
-                    <button class="tab-btn active" data-tab="overview">Overview</button>
-                    <button class="tab-btn" data-tab="regime">Regime Lab</button>
-                    <button class="tab-btn" data-tab="alpha">Alpha Lab</button>
-                    <button class="tab-btn" data-tab="models">Model Lab</button>
-                    <button class="tab-btn" data-tab="strategy">Strategy Lab</button>
-                    <button class="tab-btn" data-tab="risk">Risk Lab</button>
-                    <button class="tab-btn" data-tab="explain">Explainability</button>
+                    <button class="tab-btn active" data-tab="overview" data-i18n="tab_overview">Overview</button>
+                    <button class="tab-btn" data-tab="regime" data-i18n="tab_regime">Regime Lab</button>
+                    <button class="tab-btn" data-tab="alpha" data-i18n="tab_alpha">Alpha Lab</button>
+                    <button class="tab-btn" data-tab="models" data-i18n="tab_models">Model Lab</button>
+                    <button class="tab-btn" data-tab="strategy" data-i18n="tab_strategy">Strategy Lab</button>
+                    <button class="tab-btn" data-tab="risk" data-i18n="tab_risk">Risk Lab</button>
+                    <button class="tab-btn" data-tab="explain" data-i18n="tab_explain">Explainability</button>
                 </div>
 
                 <div class="tab-panels">
@@ -142,6 +156,10 @@
                                 <div id="overviewNotes" class="rich-text"></div>
                             </article>
                         </div>
+                        <article class="panel-card">
+                            <h3>What Changed Since Last Run</h3>
+                            <div id="lastRunDelta" class="rich-text"></div>
+                        </article>
                         <div class="chart-grid">
                             <article class="panel-card chart-card">
                                 <h3>Price and Structure</h3>
@@ -200,8 +218,18 @@
                                 <div id="strategySummary" class="kv-grid"></div>
                             </article>
                             <article class="panel-card">
+                                <h3>Ranked Candidate Strategies</h3>
+                                <div id="strategyCandidates" class="table-wrap"></div>
+                            </article>
+                        </div>
+                        <div class="panel-grid">
+                            <article class="panel-card">
                                 <h3>Recent Trades</h3>
                                 <div id="tradeLog" class="table-wrap"></div>
+                            </article>
+                            <article class="panel-card">
+                                <h3>Meta-Learner Summary</h3>
+                                <div id="metaLearnerSummary" class="rich-text"></div>
                             </article>
                         </div>
                         <article class="panel-card chart-card">

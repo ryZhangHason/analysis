@@ -83,6 +83,26 @@ body {
     gap: 16px;
 }
 
+.language-switch {
+    display: grid;
+    gap: 8px;
+}
+
+.language-switch span {
+    color: var(--muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.language-switch select {
+    border: 1px solid var(--line);
+    background: rgba(7, 17, 31, 0.88);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 12px;
+}
+
 .hero-stat {
     padding: 18px;
     border-radius: 18px;
